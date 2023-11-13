@@ -1,6 +1,6 @@
 import numpy as np
 from collections import Counter
-from sklearn.utils.linear_assignment_ import linear_assignment
+from scipy.optimize import linear_sum_assignment as linear_assignment
 
 
 def f1(p_num, p_den, r_num, r_den, beta=1):
@@ -83,7 +83,7 @@ def b_cubed(clusters, mention_to_gold):
         for m in c:
             if m in mention_to_gold:
                 gold_counts[tuple(mention_to_gold[m])] += 1
-        for c2, count in gold_counts.iteritems():
+        for c2, count in gold_counts.items():
             if len(c2) != 1:
                 correct += count * count
 
@@ -111,7 +111,6 @@ def muc(clusters, mention_to_gold):
 def phi4(c1, c2):
     return 2 * len([m for m in c1 if m in c2]) / float(len(c1) + len(c2))
 
-
 def ceafe(clusters, gold_clusters):
     clusters = [c for c in clusters if len(c) != 1]
     scores = np.zeros((len(gold_clusters), len(clusters)))
@@ -119,8 +118,22 @@ def ceafe(clusters, gold_clusters):
         for j in range(len(clusters)):
             scores[i, j] = phi4(gold_clusters[i], clusters[j])
     matching = linear_assignment(-scores)
-    similarity = sum(scores[matching[:, 0], matching[:, 1]])
+
+    # 假设 matching 是一个元组列表，我们需要将它解包成两个列表
+    rows, cols = matching
+    similarity = sum(scores[rows, cols])
     return similarity, len(clusters), similarity, len(gold_clusters)
+
+
+# def ceafe(clusters, gold_clusters):
+#     clusters = [c for c in clusters if len(c) != 1]
+#     scores = np.zeros((len(gold_clusters), len(clusters)))
+#     for i in range(len(gold_clusters)):
+#         for j in range(len(clusters)):
+#             scores[i, j] = phi4(gold_clusters[i], clusters[j])
+#     matching = linear_assignment(-scores)
+#     similarity = sum(scores[matching[:, 0], matching[:, 1]])
+#     return similarity, len(clusters), similarity, len(gold_clusters)
 
 
 def lea(clusters, mention_to_gold):
